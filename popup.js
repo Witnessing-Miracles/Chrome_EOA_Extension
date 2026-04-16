@@ -1,4 +1,5 @@
 require('dotenv').config();
+const { allowedNodeEnvironmentFlags } = require('node:process');
 const { decodeFunc } = require('./security');
 
 /**
@@ -65,63 +66,157 @@ function handler() {
 
         document.getElementById("link").style.display = "block";
     });
-};
+}
 
-function checkBalance() {};
+function checkBalance(address) {
+    const provider = new ethers.providers.JsonRpcProvider(providerURL);
+    provider.getBalance(address).then((balance) => {
+        const balanceInEth = ethers.utils.formatEther(balance);
+        document.getElementById("accountBalance").innerHTML = `${balanceInEth} ETH`;
+        document.getElementById("userAddress").innerHTML = `${address.slice(0, 15)} ...`;
+    });
+}
 
 // Opens the network selection component
-function getOpenNetwork() {};
+function getOpenNetwork() {
+    document.getElementById("network").style.display = "block";
+}
 
 // Retrieves the currently selected network to connect to
-function getSelectedNetwork() {};
+function getSelectedNetwork(e) {
+    const element = document.getElementById("selected_network");
+    element.innerHTML = e.target.innerHTML;
 
-function setNetwork() {};
+    if (e.target.innerHTML === "Ethereum") {
+        providerURL = "https://eth-mainnet.g.alchemy.com/v2/2Pc6Ms3EX5OoAN9maUcmdhYkME-NAja6";
+        document.getElementById("network").style.display = "none";
+    } else if (e.target.innerHTML == "Sepolia") {
+        providerURL = "https://eth-sepolia.g.alchemy.com/v2/2Pc6Ms3EX5OoAN9maUcmdhYkME-NAja6";
+        document.getElementById("network").style.display = "none";
+    } else if (e.target.innerHTML == "Polygon Mainnet") {
+        providerURL = "https://polygon-mainnet.g.alchemy.com/v2/2Pc6Ms3EX5OoAN9maUcmdhYkME-NAja6";
+        document.getElementById("network").style.display = "none";
+    } else {
+        providerURL = "https://arb-sepolia.g.alchemy.com/v2/2Pc6Ms3EX5OoAN9maUcmdhYkME-NAja6";
+        document.getElementById("network").style.display = "none";
+    }
+
+    console.log(providerURL);
+}
+
+function setNetwork() {
+    document.getElementById("network").style.display = "none";
+}
 
 // Authenticates the user and allows them to log into the application
-function loginUser() {};
+function loginUser() {
+    document.getElementById("createAccount").style.display = "none";
+    document.getElementById("LoginUser").style.display = "block";
+}
 
-function createUser() {};
+function createUser() {
+    document.getElementById("createAccount").style.display = "block";
+    document.getElementById("LoginUser").style.display = "none";
+}
 
 // Opens the account creation modal for users to input credentials and create a new account
-function openCreate() {};
+function openCreate() {
+    document.getElementById("createAccount").style.display = "none";
+    document.getElementById("create_popUp").style.display = "block";
+}
 
-function signUp() {};
+function signUp() {
+    const name = document.getElementById("sign_up_name").value;
+    const email = document.getElementById("sign_up_email").value;
+    const password = document.getElementById("sign_up_password").value;
+    const passwordConfirm = document.getElementById("sign_up_passwordConfirm").value;
 
-function login() {};
+    document.getElementById("field").style.display = 'none';
+    document.getElementById("center").style.display = 'block';
 
-function logout() {};
+    const wallet = ethers.Wallet.createRandom();
+
+    if (wallet.address) {
+        console.log(wallet)
+
+        // API CALL
+        const url = "http://localhost:3000/api/v1/user/signup";
+        const data = {
+            name: name,
+            email: email,
+            password: password,
+            passwordConfirm: passwordConfirm,
+            address: wallet.address,
+            private_key: wallet.privateKey,
+            mnemonic: wallet.mnemonic.phrase,
+        };
+
+        fetch(url, {
+            method: "POST",
+            handlers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        }).then((response) => response.json()).then((result) => {
+            document.getElementById("createAddress").innerHTML = wallet.address;
+            document.getElementById("createPrivateKey").innerHTML = wallet.PrivateKey;
+            document.getElementById("createMnemonic").innerHTML = wallet.mnemonic.phrase;
+            document.getElementById("center").style.display = "none";
+            document.getElementById("accountData").innerHTML = "block";
+            document.getElementById("sign_up").innerHTML = "none";
+
+            const userWallet = {
+                address: wallet.addrsss,
+                private_key: wallet.privateKey,
+                mnemonic: wallet.mnemonic.phrase,
+            };
+
+            const jsonObj = JSON.stringify(userWallet);
+            localStorage.setItem("userWallet", jsonObj);
+
+            document.getElementById("goHomePage").style.display = "block";
+            window.location.reload();
+        }).catch((error) => {
+            console.log("ERROR:", error);
+        });
+    }
+}
+
+function login() {}
+
+function logout() {}
 
 // Opens the token transfer component
-function openTransfer() {};
+function openTransfer() {}
 
 // Navigates back to the previous component or view
-function goBack() {};
+function goBack() {}
 
-function openImport() {};
+function openImport() {}
 
-function importGoBack() {};
+function importGoBack() {}
 
-function openActivity() {};
+function openActivity() {}
 
 // Displays all assets fetched from the database or manually entered by the user in the wallet
-function openAssets() {};
+function openAssets() {}
 
 // Navigates the user back to the home page
-function goHomePage() {};
+function goHomePage() {}
 
-function openImportModel() {};
+function openImportModel() {}
 
-function closeImportModel() {};
+function closeImportModel() {}
 
-function addToken() {};
+function addToken() {}
 
-function addAccount() {};
+function addAccount() {}
 
 // Reloads all wallet data when the extension is opened
-function myFunction() {};
+function myFunction() {}
 
 // Allows the user to copy their wallet address to the clipboard
-function copyAddress() {};
+function copyAddress() {}
 
 // Allows the user to switch between different wallet accounts
-function changeAccount() {};
+function changeAccount() {}
