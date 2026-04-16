@@ -182,35 +182,149 @@ function signUp() {
     }
 }
 
-function login() {}
+function login() {
+    document.getElementById("login_form").style.display = "none";
+    document.getElementById("center").style.display = "block";
 
-function logout() {}
+    const email = document.getElementById("login_email").value;
+    const password = document.getElementById("login_password").value;
+
+    // API CALL
+    const url = "http://localhost:3000/api/v1/user/login";
+    const data = {
+        email: email,
+        password: password,
+    };
+
+    fetch(url, {
+        method: 'POST',
+        handlers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data)
+    }).then((response) => response.json()).then((result) => {
+        console.log(result)
+        const userWallet = {
+            address: result.data.user.address,
+            private_key: result.data.user.private_key,
+            mnemonic: result.data.user.mnemonic,
+        };
+
+        const jsonObj = JSON.stringify(userWallet);
+        localStorage.setItem("userWallet", jsonObj);
+        window.location.reload();
+    }).catch((error) => {
+        console.log(error);
+    });
+}
+
+function logout() {
+    localStorage.removeItem("userWallet");
+    window.location.reload();
+}
 
 // Opens the token transfer component
-function openTransfer() {}
+function openTransfer() {
+    document.getElementById("transfer_from").style.display = "block";
+    document.getElementById("home").style.display = "none";
+}
 
 // Navigates back to the previous component or view
-function goBack() {}
+function goBack() {
+    document.getElementById("transfer_from").style.display = "none";
+    document.getElementById("home").style.display = "block";
+}
 
-function openImport() {}
+function openImport() {
+    document.getElementById("transfer_from").style.display = "block";
+    document.getElementById("home").style.display = "none";
+}
 
-function importGoBack() {}
+function importGoBack() {
+    document.getElementById("import_token").style.display = "none";
+    document.getElementById("home").style.display = "block";
+}
 
-function openActivity() {}
+function openActivity() {
+    document.getElementById("activity").style.display = "block";
+    document.getElementById("assets").style.display = "none";
+}
 
 // Displays all assets fetched from the database or manually entered by the user in the wallet
-function openAssets() {}
+function openAssets() {
+    document.getElementById("activity").style.display = "none";
+    document.getElementById("assets").style.display = "block";
+}
 
 // Navigates the user back to the home page
-function goHomePage() {}
+function goHomePage() {
+    document.getElementById("create_popUp").style.display = "none";
+    document.getElementById("home").style.display = "block";
+}
 
-function openImportModel() {}
+function openImportModel() {
+    document.getElementById("import_account").style.display = "block";
+    document.getElementById("home").style.display = "none";
+}
 
-function closeImportModel() {}
+function closeImportModel() {
+    document.getElementById("import_account").style.display = "none";
+    document.getElementById("home").style.display = "block";
+}
 
-function addToken() {}
+function addToken() {
+    const address = document.getElementById("token_address").value;
+    const name = document.getElementById("token_name").value;
+    const symbol = document.getElementById("token_symbol").value;
 
-function addAccount() {}
+    // API Call
+    const url = 'http://localhost:3000/api/v1/tokens/createtoken';
+    const data = {
+        name: name,
+        address: address,
+        symbol: symbol,
+    };
+
+    fetch(url, {
+        method: "POST",
+        handlers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data)
+    }).then((response) => response.json()).then((result) => {
+        console.log(result);
+        window.location.reload()
+    }).catch((error) => {
+        console.log("ERROR", error);
+    })
+}
+
+function addAccount() {
+    const privateKey = document.getElementById("add_account_private_key").value;
+    const provider = new ethers.provider.JsonRpcProvider(providerURL);
+    let wallet = new ethers.wallet(privateKey, provider);
+
+    console.log(wallet);
+
+    const url = "http://localhost:3000/api/v1/account/createaccount";
+
+    const data = {
+        privateKey: privateKey,
+        address: wallet.address,
+    };
+
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data),
+    }).then((response) => response.json()).then((result) => {
+        console.log(result);
+    }).catch((error) => {
+        console.log(error);
+    });
+}
 
 // Reloads all wallet data when the extension is opened
 function myFunction() {}
