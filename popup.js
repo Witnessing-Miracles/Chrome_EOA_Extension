@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("open_Transfer").addEventListener("click", openTransfer);
     document.getElementById("goBack").addEventListener("click", goBack);
     document.getElementById("open_Import").addEventListener("click", openImport);
+    document.getElementById("goBack_import").addEventListener("click", importGoBack);
     document.getElementById("open_assets").addEventListener("click", openAssets);
     document.getElementById("open_activity").addEventListener("click", openActivity);
     document.getElementById("goHomePage").addEventListener("click", goHomePage);
@@ -49,7 +50,7 @@ function handler() {
     // Provider
     const provider = new ethers.providers.JsonRpcProvider(providerURL);
 
-    let wallet = new ethers.wallet(privateKey, provider);
+    let wallet = new ethers.Wallet(privateKey, provider);
     const tx = {
         to: address,
         value: ethers.utils.parseEther(amount),
@@ -89,15 +90,19 @@ function getSelectedNetwork(e) {
 
     if (e.target.innerHTML === "Ethereum") {
         providerURL = "https://eth-mainnet.g.alchemy.com/v2/2Pc6Ms3EX5OoAN9maUcmdhYkME-NAja6";
+        localStorage.setItem("ACTIVE_NETWORK", "Ethereum");
         document.getElementById("network").style.display = "none";
     } else if (e.target.innerHTML == "Sepolia") {
         providerURL = "https://eth-sepolia.g.alchemy.com/v2/2Pc6Ms3EX5OoAN9maUcmdhYkME-NAja6";
+        localStorage.setItem("ACTIVE_NETWORK", "Sepolia");
         document.getElementById("network").style.display = "none";
     } else if (e.target.innerHTML == "Polygon Mainnet") {
         providerURL = "https://polygon-mainnet.g.alchemy.com/v2/2Pc6Ms3EX5OoAN9maUcmdhYkME-NAja6";
+        localStorage.setItem("ACTIVE_NETWORK", "Polygon Mainnet");
         document.getElementById("network").style.display = "none";
     } else {
         providerURL = "https://arb-sepolia.g.alchemy.com/v2/2Pc6Ms3EX5OoAN9maUcmdhYkME-NAja6";
+        localStorage.setItem("ACTIVE_NETWORK", "Arbitrum Sepolia");
         document.getElementById("network").style.display = "none";
     }
 
@@ -131,8 +136,8 @@ function signUp() {
     const password = document.getElementById("sign_up_password").value;
     const passwordConfirm = document.getElementById("sign_up_passwordConfirm").value;
 
-    document.getElementById("field").style.display = 'none';
-    document.getElementById("center").style.display = 'block';
+    document.getElementById("field").style.display = "none";
+    document.getElementById("center").style.display = "block";
 
     const wallet = ethers.Wallet.createRandom();
 
@@ -159,11 +164,11 @@ function signUp() {
             body: JSON.stringify(data),
         }).then((response) => response.json()).then((result) => {
             document.getElementById("createAddress").innerHTML = wallet.address;
-            document.getElementById("createPrivateKey").innerHTML = wallet.PrivateKey;
+            document.getElementById("createPrivateKey").innerHTML = wallet.privateKey;
             document.getElementById("createMnemonic").innerHTML = wallet.mnemonic.phrase;
             document.getElementById("center").style.display = "none";
-            document.getElementById("accountData").innerHTML = "block";
-            document.getElementById("sign_up").innerHTML = "none";
+            document.getElementById("accountData").style.display = "block";
+            document.getElementById("sign_up").style.display = "none";
 
             const userWallet = {
                 address: wallet.addrsss,
@@ -173,11 +178,11 @@ function signUp() {
 
             const jsonObj = JSON.stringify(userWallet);
             localStorage.setItem("userWallet", jsonObj);
-
             document.getElementById("goHomePage").style.display = "block";
+
             window.location.reload();
         }).catch((error) => {
-            console.log("ERROR:", error);
+            console.error("ERROR:", error);
         });
     }
 }
@@ -185,7 +190,6 @@ function signUp() {
 function login() {
     document.getElementById("login_form").style.display = "none";
     document.getElementById("center").style.display = "block";
-
     const email = document.getElementById("login_email").value;
     const password = document.getElementById("login_password").value;
 
@@ -197,13 +201,13 @@ function login() {
     };
 
     fetch(url, {
-        method: 'POST',
+        method: "POST",
         handlers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
     }).then((response) => response.json()).then((result) => {
-        console.log(result)
+        console.log(result.data.user);
         const userWallet = {
             address: result.data.user.address,
             private_key: result.data.user.private_key,
@@ -214,7 +218,7 @@ function login() {
         localStorage.setItem("userWallet", jsonObj);
         window.location.reload();
     }).catch((error) => {
-        console.log(error);
+        console.error("Error:", error);
     });
 }
 
@@ -236,7 +240,7 @@ function goBack() {
 }
 
 function openImport() {
-    document.getElementById("transfer_from").style.display = "block";
+    document.getElementById("import_token").style.display = "block";
     document.getElementById("home").style.display = "none";
 }
 
@@ -278,7 +282,7 @@ function addToken() {
     const symbol = document.getElementById("token_symbol").value;
 
     // API Call
-    const url = 'http://localhost:3000/api/v1/tokens/createtoken';
+    const url = "http://localhost:3000/api/v1/tokens/createtoken";
     const data = {
         name: name,
         address: address,
@@ -287,25 +291,26 @@ function addToken() {
 
     fetch(url, {
         method: "POST",
-        handlers: {
+        headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
     }).then((response) => response.json()).then((result) => {
-        console.log(result);
-        window.location.reload()
+        console.log(result.data.createToken);
+        window.location.reload();
     }).catch((error) => {
-        console.log("ERROR", error);
-    })
+        console.error("ERROR:", error);
+    });
 }
 
 function addAccount() {
     const privateKey = document.getElementById("add_account_private_key").value;
-    const provider = new ethers.provider.JsonRpcProvider(providerURL);
-    let wallet = new ethers.wallet(privateKey, provider);
+    const provider = new ethers.providers.JsonRpcProvider(providerURL);
+    let wallet = new ethers.Wallet(privateKey, provider);
 
-    console.log(wallet);
+    console.log(wallet.address);
 
+    // API Call
     const url = "http://localhost:3000/api/v1/account/createaccount";
 
     const data = {
@@ -316,13 +321,15 @@ function addAccount() {
     fetch(url, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
     }).then((response) => response.json()).then((result) => {
         console.log(result);
+        closeImportModel();
+        window.location.reload();
     }).catch((error) => {
-        console.log(error);
+        console.error("Error:", error);
     });
 }
 
@@ -331,7 +338,9 @@ function myFunction() {
     const str = localStorage.getItem("userWallet");
     const parsedObj = JSON.parse(str);
 
-    if (parsedObj.address) {
+    console.log(parsedObj);
+
+    if (parsedObj?.address) {
         document.getElementById("LoginUser").style.display = "none";
         document.getElementById("home").style.display = "block";
 
@@ -343,40 +352,51 @@ function myFunction() {
 
     const tokenRender = document.querySelector(".assets");
     const accountRender = document.querySelector(".accountList");
-    const url = "http://localhost:3000/api/v1/tokens/alltoken";
 
+    // API Call
+    const url = "http://localhost:3000/api/v1/tokens/alltoken";
     fetch(url).then((response) => response.json()).then((data) => {
         let elements = "";
 
         data.data.tokens.map((token) =>
-            elements += 
+            (elements += 
             `<div class="assets_item">
                 <img class="assets_item_img" src="./assets/token_label.png" alt=""/>
-                <span> ${token.address.slice(0, 15)}... </span>
-                <span> ${token.symbol} </span>
-            </div>`
+                <span>${token.address.slice(0, 15)}...</span>
+                <span>${token.symbol}</span>
+            </div>`)
         );
 
         tokenRender.innerHTML = elements;
     }).catch((error) => {
-        console.log(error);
+        // Handle any errors
+        console.error("Error:", error);
     });
 
+    // END API CALL
     fetch("http://localhost:3000/api/v1/account/allaccount").then((response) =>
         response.json()).then((data) => {
             let accounts = "";
             data.data.accounts.map((account, i) =>
-                account += 
+                (account += 
                 `<div class="lists">
-                    <p> ${i + 1} </p>
-                    <p class="accountValue" data-address=${account.address} data-privateKey=
-                    ${account}.privateKey> ${account.address.slice(0, 25)}...</p>
-                </div>`
+                    <p>${i + 1}</p>
+                    <p class="accountValue" data-address="${account.address}" data-privateKey=
+                    "${account.privateKey}">${account.address.slice(0, 25)}..</p>
+                </div>`)
             );
 
             accountRender.innerHTML = accounts;
+
+            // Add event isteners to each account after rendering
+            const accountElements = document.querySelectorAll(".lists");
+            accountElements.forEach((element) => {
+                element.addEventListener("click", function() {
+                    changeAccount(element);
+                });
+            });
         }).catch((error) => {
-            console.log(error);
+            console.error("Error:", error);
         });
     
     console.log(privateKey);
@@ -388,8 +408,8 @@ function copyAddress() {
 }
 
 // Allows the user to switch between different wallet accounts
-function changeAccount() {
-    const data = document.querySelector(".accountValue");
+function changeAccount(element) {
+    const data = element.querySelector(".accountValue");
     const address = data.getAttribute("data-address");
     const privateKey = data.getAttribute("data-privateKey");
     
@@ -401,9 +421,9 @@ function changeAccount() {
         mnemonic: "Changed",
     };
 
+    console.log(userWallet);
     const jsonObj = JSON.stringify(userWallet);
     localStorage.setItem("userWallet", jsonObj);
-
 
     window.location.reload();
 }
