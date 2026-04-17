@@ -327,10 +327,85 @@ function addAccount() {
 }
 
 // Reloads all wallet data when the extension is opened
-function myFunction() {}
+function myFunction() {
+    const str = localStorage.getItem("userWallet");
+    const parsedObj = JSON.parse(str);
+
+    if (parsedObj.address) {
+        document.getElementById("LoginUser").style.display = "none";
+        document.getElementById("home").style.display = "block";
+
+        privateKey = parsedObj.private_key;
+        address = parsedObj.address;
+
+        checkBalance(parsedObj.address);
+    }
+
+    const tokenRender = document.querySelector(".assets");
+    const accountRender = document.querySelector(".accountList");
+    const url = "http://localhost:3000/api/v1/tokens/alltoken";
+
+    fetch(url).then((response) => response.json()).then((data) => {
+        let elements = "";
+
+        data.data.tokens.map((token) =>
+            elements += 
+            `<div class="assets_item">
+                <img class="assets_item_img" src="./assets/token_label.png" alt=""/>
+                <span> ${token.address.slice(0, 15)}... </span>
+                <span> ${token.symbol} </span>
+            </div>`
+        );
+
+        tokenRender.innerHTML = elements;
+    }).catch((error) => {
+        console.log(error);
+    });
+
+    fetch("http://localhost:3000/api/v1/account/allaccount").then((response) =>
+        response.json()).then((data) => {
+            let accounts = "";
+            data.data.accounts.map((account, i) =>
+                account += 
+                `<div class="lists">
+                    <p> ${i + 1} </p>
+                    <p class="accountValue" data-address=${account.address} data-privateKey=
+                    ${account}.privateKey> ${account.address.slice(0, 25)}...</p>
+                </div>`
+            );
+
+            accountRender.innerHTML = accounts;
+        }).catch((error) => {
+            console.log(error);
+        });
+    
+    console.log(privateKey);
+}
 
 // Allows the user to copy their wallet address to the clipboard
-function copyAddress() {}
+function copyAddress() {
+    navigator.clipboard.writeText(address);
+}
 
 // Allows the user to switch between different wallet accounts
-function changeAccount() {}
+function changeAccount() {
+    const data = document.querySelector(".accountValue");
+    const address = data.getAttribute("data-address");
+    const privateKey = data.getAttribute("data-privateKey");
+    
+    console.log(privateKey, address);
+
+    const userWallet = {
+        address: address,
+        private_key: privateKey,
+        mnemonic: "Changed",
+    };
+
+    const jsonObj = JSON.stringify(userWallet);
+    localStorage.setItem("userWallet", jsonObj);
+
+
+    window.location.reload();
+}
+
+window.onload = myFunction;
